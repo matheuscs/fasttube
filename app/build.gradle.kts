@@ -43,8 +43,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.vision.common)
+    implementation(libs.litert)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation ("com.google.mlkit:text-recognition:16.0.1")
+    implementation ("org.tensorflow:tensorflow-lite:2.17.0")
 }

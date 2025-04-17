@@ -12,7 +12,7 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="250dp"
         android:id="@+id/cameraImage"
         android:scaleType="fitCenter"
         android:src="@drawable/baseline_image_24"
@@ -45,14 +45,5 @@
         android:textAlignment="textStart"
         android:layout_marginTop="16dp"
         android:scrollbars="vertical" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/copyTextBtn"
-        android:visibility="invisible"
-        android:text="Copy Text"
-        android:backgroundTint="@color/steel_blue"
-        android:layout_marginTop="16dp" />
 
 </LinearLayout>
