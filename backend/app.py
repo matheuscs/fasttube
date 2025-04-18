@@ -14,15 +14,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 youtube = build("youtube", "v3", developerKey=os.getenv('YT_API_KEY'))
 
-API_SECRET = os.environ.get("API_SECRET", "fallback-default-if-missing")
-
-@app.before_request
-def verify_token():
-    auth = request.headers.get("Authorization")
-    if not auth or auth != f"Bearer {API_SECRET}":
-        abort(401, "Unauthorized: Missing or invalid token")
-
-
 @app.route("/get-summary", methods=["POST"])
 def get_summary():
     data = request.get_json()
@@ -51,6 +42,8 @@ def get_summary():
     app.logger.debug(f'[SUMMARY_DEBUG] url: {url}')
 
     try:
+        # It is not allowed to scrape yt video info for commercial usage, so the following will
+        # most likely be blocked if run on cloud providers, but works fine on local machines
         loader = YoutubeLoader.from_youtube_url(url, language=['pt'])
         document_list = loader.load()
     except Exception as e:
