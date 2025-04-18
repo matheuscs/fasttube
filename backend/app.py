@@ -1,18 +1,22 @@
 import os
+import socket
 
-from flask import Flask, request, jsonify, abort
+from flask import Flask, request, jsonify
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import YoutubeLoader
 from flask_cors import CORS
+from httplib2 import Http
 import logging
 
 app = Flask(__name__)
 CORS(app)
 logging.basicConfig(level=logging.DEBUG)
 
-youtube = build("youtube", "v3", developerKey=os.getenv('YT_API_KEY'))
+http = Http(timeout=20)
+youtube = build("youtube", "v3", developerKey=os.getenv('YT_API_KEY'), http=http)
 
 @app.route("/get-summary", methods=["POST"])
 def get_summary():
@@ -27,11 +31,24 @@ def get_summary():
     if debug:
         return jsonify({'summary': "Não deu ruim. Ele pulou do prédio mas abriu o paraquedas e pousou em segurança."})
 
-    results = youtube.search().list(
-        q=f"{title} {channel}",
-        part="snippet",
-        maxResults=5
-    ).execute()
+    try:
+        results = youtube.search().list(
+            q=f"{title} {channel}",
+            part="snippet",
+            maxResults=5
+        ).execute()
+    except socket.timeout:
+        app.logger.error(
+            f"[SUMMARY_ERROR] Timeout while requesting YouTube API for title: '{title}', channel: '{channel}'")
+        return {
+            "error": "A requisição à API do YouTube demorou demais e foi interrompida. Tente novamente em instantes."}, 504
+    except HttpError as e:
+        app.logger.error(f"[SUMMARY_ERROR] YouTube API error: {e}")
+        return {"error": "Erro ao acessar a API do YouTube. Verifique a chave ou tente novamente mais tarde."}, 502
+    except Exception as e:
+        app.logger.exception(f"[SUMMARY_ERROR] Unexpected error: {e}")
+        return {"error": "Erro inesperado ao processar sua solicitação."}, 500
+
 
     url = ''
     for item in results["items"]:
