@@ -31,7 +31,9 @@ import java.io.FileInputStream
 import java.nio.ByteBuffer
 
 import android.graphics.Matrix
+import android.view.View
 import androidx.exifinterface.media.ExifInterface
+import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -46,6 +48,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var takePictureLauncher: ActivityResultLauncher<Uri>
 
     private lateinit var tflite: Interpreter
+    private val detectedVideos = mutableListOf<VideoInfo>()
+    private lateinit var videoList: RecyclerView
+    private lateinit var videoAdapter: VideoAdapter
+    private lateinit var summaryTitle: TextView
+    private lateinit var detectedVideosTxt: TextView
+
+    data class VideoInfo(val index: Int, val title: String, val channel: String, val thumb: String)
+    data class Detection(val x: Float, val y: Float, val w: Float, val h: Float, val score: Float, val label: Int)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,10 +67,39 @@ class MainActivity : AppCompatActivity() {
         cameraImage = findViewById(R.id.cameraImage)
         captureImgBtn = findViewById(R.id.captureImgBtn)
         resultText = findViewById(R.id.resultText)
+        summaryTitle = findViewById(R.id.summaryTitle)
+        videoList = findViewById(R.id.videoList)
+        detectedVideosTxt = findViewById(R.id.detectedVideosTxt)
+
+        cameraImage.visibility = View.GONE
+        resultText.visibility = View.GONE
+        summaryTitle.visibility = View.GONE
+        detectedVideosTxt.visibility = View.GONE
+
         resultText.movementMethod = ScrollingMovementMethod()
 
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            isGranted ->
+        videoList = findViewById(R.id.videoList)
+        videoAdapter = VideoAdapter(detectedVideos) { video ->
+            getSummary(video.thumb, video.title, video.channel) { summary ->
+                if (summary != null) {
+                    Log.d("SUMMARY", "${video.channel}: ${video.title} :: $summary")
+                    runOnUiThread {
+                        summaryTitle.text = "${video.channel}: ${video.title}"
+                        resultText.text = summary
+
+                        summaryTitle.visibility = View.VISIBLE
+                        resultText.visibility = View.VISIBLE
+                    }
+                } else {
+                    Toast.makeText(this, "Erro ao obter resumo", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        videoList.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        videoList.adapter = videoAdapter
+
+        // Camera permission flow
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 captureImage()
             } else {
@@ -73,12 +112,13 @@ class MainActivity : AppCompatActivity() {
                 currentPhotoPath?.let { path ->
                     val rawBitmap = BitmapFactory.decodeFile(path)
                     val rotatedBitmap = rotateImageIfRequired(rawBitmap, path)
-                    val detections = runObjectDetection(rotatedBitmap)  // Run detection and get filtered boxes
-                    runOcrOnDetections(rotatedBitmap, detections)  // Run OCR only inside the detected regions
+                    val detections = runObjectDetection(rotatedBitmap)
+                    runOcrOnDetections(rotatedBitmap, detections)
                 }
             }
         }
-        captureImgBtn.setOnClickListener{
+
+        captureImgBtn.setOnClickListener {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
@@ -105,7 +145,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadTFLiteModel(): Interpreter {
-        val assetFileDescriptor = assets.openFd("best_float16.tflite")
+        val assetFileDescriptor = assets.openFd("best-tv_float16.tflite")
         val inputStream = FileInputStream(assetFileDescriptor.fileDescriptor)
         val fileChannel = inputStream.channel
         val startOffset = assetFileDescriptor.startOffset
@@ -139,7 +179,8 @@ class MainActivity : AppCompatActivity() {
         val filtered = filterOverlappingDetections(detections)
         val drawnBitmap = drawDetections(bitmap, filtered)
         cameraImage.setImageBitmap(drawnBitmap)
-
+        cameraImage.visibility = View.VISIBLE
+        detectedVideosTxt.visibility = View.VISIBLE
         Toast.makeText(this, "Detected ${filtered.size} items", Toast.LENGTH_SHORT).show()
 
         return filtered
@@ -285,28 +326,18 @@ class MainActivity : AppCompatActivity() {
         val stats = lines.getOrNull(lines.size - 1) ?: ""
         val title = titleLines.joinToString(" ")
         val thumbText = lines.firstOrNull() ?: ""
-        resultText.text = ""
-        Log.i("SUMMARY", "Got data: $channel: $title")
+
         if (title.isNotBlank() && channel.isNotBlank()) {
-            getSummary(thumb = thumbText, title = title, channel = channel) { summary ->
-                if (summary != null) {
-                    Log.d("SUMMARY", "Box $index: $summary")
-                    runOnUiThread {
-                        val currentText = resultText.text.toString()
-                        val newText = "${currentText}Box $index:\n$summary\n\n"
-                        resultText.text = newText
-                    }
-                } else {
-                    Log.w("SUMMARY", "Box $index failed to summarize")
-                }
-            }
+            detectedVideos.add(VideoInfo(index, title, channel, thumbText))
+            updateVideoListUI()
         } else {
             Log.d("SUMMARY", "Box $index skipped due to missing title or channel")
         }
     }
 
+
     private fun getSummary(thumb: String, title: String, channel: String, callback: (String?) -> Unit) {
-        val url = URL("http://192.168.1.14:5000/get-summary")
+        val url = URL("http://192.168.1.14:8080/get-summary")
         val json = """{"thumb":"$thumb","title":"$title","channel":"$channel","debug":"False"}"""
 
         Thread {
@@ -334,5 +365,9 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
     }
-    data class Detection(val x: Float, val y: Float, val w: Float, val h: Float, val score: Float, val label: Int)
+    private fun updateVideoListUI() {
+        runOnUiThread {
+            videoAdapter.notifyDataSetChanged()
+        }
+    }
 }

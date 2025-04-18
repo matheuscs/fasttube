@@ -1,49 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:orientation="vertical"
-    android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     tools:context=".MainActivity">
 
-    <ImageView
+    <LinearLayout
+        android:id="@+id/main"
+        android:orientation="vertical"
+        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:id="@+id/cameraImage"
-        android:scaleType="fitCenter"
-        android:src="@drawable/baseline_image_24"
-        android:layout_marginTop="12dp" />
+        android:layout_height="wrap_content">
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/captureImgBtn"
-        android:text="Capture Image"
-        android:backgroundTint="@color/steel_blue"
-        android:layout_marginTop="12dp" />
+        <ImageView
+            android:id="@+id/cameraImage"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/baseline_image_24"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OCR Text:"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp" />
+        <Button
+            android:id="@+id/captureImgBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Capture Image"
+            android:backgroundTint="@color/steel_blue"
+            android:layout_marginTop="12dp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="280dp"
-        android:id="@+id/resultText"
-        android:text=""
-        android:padding="8dp"
-        android:background="@drawable/border"
-        android:textSize="20sp"
-        android:textAlignment="textStart"
-        android:layout_marginTop="16dp"
-        android:scrollbars="vertical" />
+        <TextView
+            android:id="@+id/detectedVideosTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vídeos detectados (clique para resumo):"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
 
-</LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/videoList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/summaryTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/resultText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="18sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>
