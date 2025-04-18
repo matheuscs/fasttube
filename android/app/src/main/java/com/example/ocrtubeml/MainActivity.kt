@@ -305,7 +305,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getSummary(thumb: String, title: String, channel: String, callback: (String?) -> Unit) {
+    private fun getSummary(thumb: String, title: String, channel: String, callback: (String?) -> Unit) {
         val url = URL("http://192.168.1.14:5000/get-summary")
         val json = """{"thumb":"$thumb","title":"$title","channel":"$channel","debug":"False"}"""
 
