@@ -1,6 +1,7 @@
 # 🚀 FastTube
 
-Point. Snap. Summarize.  
+Point. Snap. Summarize.
+
 FastTube lets you scan YouTube videos with your phone camera and get instant summaries using AI.
 
 ## 📱Features
@@ -27,13 +28,15 @@ fasttube/
 
 - Requires: Android SDK, ML Kit, TensorFlow Lite model (YOLOv8)
 
+You will need to use a `tflite` file to identify the YT videos. I shared mine in Releases page, but if your layout is different you'll probably need to generate your own. Add them to the `assets` folder in Android project.
+
 ### Flask Backend
 
 Requires:
 - [Groq API Key](https://console.groq.com/keys) (or adapt the code to use OpenAI, Ollama, etc.)
 - [YouTube Data API v3 Key](https://console.cloud.google.com/apis/library/youtube.googleapis.com)
 
-If you don't want to get them, just set `debug` to `False` in the request.
+If you don't want to get them, just set `debug` to `True` in the request.
 
 Adjust your IP to the one displayed when running backend.
 
@@ -75,9 +78,27 @@ You can't make money from this because this would go against YT TOS. But you can
 - **YouTube APIs** – Transcription
 - **LLM (OpenAI or similar)** – Summarization
 
-## 📸 Screenshots
+## 🛣️ Roadmap
 
-*Coming soon... (or not)*
+- Improve UI (a lot!)
+- Improve prompt (it is not that useful now). Ask a very short summary and a longer one, perhaps. Ask to answer straight to the point if there is a question in the thumb or title.
+- Setttings UI. So you don't need to recompile if your IP changes. Language selection, etc
+- Database? So you don't need to call API again if already done before.
+- RAG? Every time a video is summarized, add some context to that channel, so future summaries will have more knowledge about that specific channel.
+- Feedback UI? Would make sense if were deployed in production.
+- Let user make following up questions after summary is provided.
+
+## 📸 Screenshots
+<p float="left">
+  <a href="https://github.com/user-attachments/assets/4ee63baf-1dc8-44d3-a80d-ed867751822e">
+    <img src="https://github.com/user-attachments/assets/4ee63baf-1dc8-44d3-a80d-ed867751822e" width="255" style="vertical-align: top;"/>
+  </a>
+  <a href="https://github.com/user-attachments/assets/94e6e0e0-ea2f-4896-8df9-235486baf6ee">
+    <img src="https://github.com/user-attachments/assets/94e6e0e0-ea2f-4896-8df9-235486baf6ee" width="121" style="vertical-align: top; margin-left: 10px;"/>
+  </a>
+</p>
+
+
 
 ## 🧑‍💻 Author
 
